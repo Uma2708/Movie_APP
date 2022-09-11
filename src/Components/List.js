@@ -6,18 +6,20 @@ import API_KEY from "../secrets";
 export default class List extends Component {
     constructor() {
         super();
+        console.log("constructor is called");
         this.state = {
             hover: "",
-            parr:[1] ,
+            parr: [1],
             currPage: 1,
-            movies:[],
+            movies: [],
+            favMov:[] 
         };
     }
 
     handleEnter = (id) => {
         this.setState({
-            hover: id ,  
-           
+            hover: id,
+
         });
     };
 
@@ -29,55 +31,69 @@ export default class List extends Component {
 
     changeMovies = async () => {
         console.log(this.state.currPage);
-       console.log("changeMovies called");
-       let ans = await axios.get(
-         `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${this.state.currPage}`
-       );
-       // console.log(ans.data);
-       this.setState({
-         movies: [...ans.data.results] //[{},{},{}]
-       });
-     };
-   
-     handleNext = () => {
-       let tempArr = [];
-       for (let i = 1; i <= this.state.parr.length + 1; i++){
-         tempArr.push(i); //[1,2]
-       } 
-       this.setState({
-         parr: [...tempArr],
-         currPage: this.state.currPage + 1,
-        },this.changeMovies);
-    
-      };
-    
-      handlePrev = () => {
-        if (this.state.currPage != 1) {
-          this.setState({
-            currPage: this.state.currPage - 1
-          },this.changeMovies)
-        }
-      }
-    
-      handlePageNum = (pageNum) =>{
-        this.setState(
-          {
-            currPage: pageNum,
-          },
-          this.changeMovies
+        console.log("changeMovies called");
+        let ans = await axios.get(
+            `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${this.state.currPage}`
         );
-   
-     }
+        // console.log(ans.data);
+        this.setState({
+            movies: [...ans.data.results] //[{},{},{}]
+        });
+    };
 
-    async componentDidMount(){
+    handleNext = () => {
+        let tempArr = [];
+        for (let i = 1; i <= this.state.parr.length + 1; i++) {
+            tempArr.push(i); //[1,2]
+        }
+        this.setState({
+            parr: [...tempArr],
+            currPage: this.state.currPage + 1,
+        }, this.changeMovies);
+
+    };
+
+    handlePrev = () => {
+        if (this.state.currPage != 1) {
+            this.setState({
+                currPage: this.state.currPage - 1
+            }, this.changeMovies)
+        }
+    }
+
+    handlePageNum = (pageNum) => {
+        this.setState(
+            {
+                currPage: pageNum,
+            },
+            this.changeMovies
+        );
+
+    }
+
+    handleFavourites=(movieObj) => {
+        let localStorageMovies=JSON.parse(localStorage.getItem("movies")) || [];
+        if (this.state.favMov.includes(movieObj.id)){
+            localStorageMovies= localStorageMovies.filter(movie => movie.id != movieObj.id );
+        }
+        else localStorageMovies.push(movieObj);
+        console.log(localStorageMovies);
+        localStorage.setItem("movies",JSON.stringify(localStorageMovies));
+        let tempData = localStorageMovies.map(movieObj=> movieObj.id);
+        this.setState({
+            favMov: [...tempData]
+        });
+    }
+
+    async componentDidMount() {
         console.log("componentDidMount is called");
         // console.log(API_KEY);
         let ans = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${this.state.currPage}`);
         // console.log(res.data);
 
         this.setState({
-            movies:[...ans.data.results], //[{},{},{}]
-          });
+            movies: [...ans.data.results], //[{},{},{}]
+        });
     }
 
     render() {
@@ -105,8 +121,10 @@ export default class List extends Component {
                                     {/* <p className="card-text movie-text">{movieObj.overview }</p> */}
                                     <div className="button-wrapper">
                                         {
-                                            this.state.hover == movieObj.id && (<a href="#" class="btn btn-danger movie-button">Add to Favourites </a>
-                                        )}
+                                            this.state.hover == movieObj.id && (<a class="btn btn-danger movie-button" onClick={()=>this.handleFavourites(movieObj)}>
+                                                {this.state.favMov.includes(movieObj.id)?"Remove from Favourites":"Add to Favourites"}
+                                                </a>
+                                            )}
 
                                     </div>
                                     {/* </div> */}
@@ -117,9 +135,9 @@ export default class List extends Component {
                         <div className='pagination '>
                             <nav aria-label="Page navigation example">
                                 <ul class="pagination">
-                                    <li class="page-item"><a class="page-link" onClick= {this.handlePrev}>Previous</a></li>
-                                    {this.state.parr.map((pageNum )=> (
-                                         <li class="page-item"><a class="page-link" onClick ={()=> {this.handlePageNum(pageNum)}}>{pageNum}</a></li>
+                                    <li class="page-item"><a class="page-link" onClick={this.handlePrev}>Previous</a></li>
+                                    {this.state.parr.map((pageNum) => (
+                                        <li class="page-item"><a class="page-link" onClick={() => { this.handlePageNum(pageNum) }}>{pageNum}</a></li>
                                     ))}
                                     <li class="page-item"><a class="page-link" onClick={this.handleNext}>Next</a></li>
                                 </ul>
