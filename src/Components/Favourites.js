@@ -8,7 +8,7 @@ export default class Favourites extends Component {
       movies: [],
       genre: [],
       currGenre: "All Genre",
-      currText:"",
+      currText: "",
       limit: 5,
       currPage: 1,
     };
@@ -37,7 +37,7 @@ export default class Favourites extends Component {
     });
   }
 
-  handleCurrGenre = (genre)=>{
+  handleCurrGenre = (genre) => {
     this.setState({
       currGenre: genre,
     });
@@ -90,8 +90,19 @@ export default class Favourites extends Component {
 
   handlePageNum = (page) => {
     this.setState({
-      currPage:page
+      currPage: page,
+    });
+  };
+
+  handleDelete = (id) => {
+    let newMovies = this.state.movies.filter((movieObj) => {
+      return movieObj.id != id;
+    });
+    this.setState({
+      movies: [...newMovies]
     })
+    localStorage.setItem("movies", JSON.stringify(newMovies));
+
   }
 
   render() {
@@ -102,8 +113,8 @@ export default class Favourites extends Component {
 
     let filteredMovies = this.state.movies;
 
-    if (this.state.currText ==="") {
-      filteredMovies=this.state.movies;
+    if (this.state.currText === "") {
+      filteredMovies = this.state.movies;
     }
     else {
       filteredMovies = filteredMovies.filter((movieObj) => {
@@ -114,7 +125,7 @@ export default class Favourites extends Component {
 
     if (this.state.currGenre != "All Genre") {
       filteredMovies = filteredMovies.filter(
-        (movieObj) => genreId[movieObj.genre_ids[0]]==this.state.currGenre
+        (movieObj) => genreId[movieObj.genre_ids[0]] == this.state.currGenre
       );
     }
 
@@ -132,13 +143,13 @@ export default class Favourites extends Component {
     return (
       <div class="row">
         <div class="col-3 favourites-list"> <ul class="list-group">
-        {this.state.genre.map((genre) => 
-              this.state.currGenre==genre ? (
+          {this.state.genre.map((genre) =>
+            this.state.currGenre == genre ? (
               <li class="list-group-item active" aria-current="true">
                 {genre}
-                </li> 
-              ):(
-                <li class="list-group-item" aria-current="true" onClick={() => this.handleCurrGenre(genre)}>
+              </li>
+            ) : (
+              <li class="list-group-item" aria-current="true" onClick={() => this.handleCurrGenre(genre)}>
                 {genre}
               </li>
             ))}
@@ -146,14 +157,19 @@ export default class Favourites extends Component {
         </div>
         <div class="col favourites-table">
           <div class="row">
-          <input
+            <input
               type="text"
               className="col-8"
               placeholder="Search"
               value={this.state.currText}
               onChange={this.handleText}
             ></input>
-            <input type="number" className='col-4' placeholder="5"></input>
+            <input
+              type="number"
+              className="col-4"
+              value={this.state.limit}
+              onChange={(e) => this.setState({ limit: e.target.value })}
+            ></input>
           </div>
           <div class="row">
             <table class="table">
@@ -164,16 +180,16 @@ export default class Favourites extends Component {
 
                   <th scope="col">Title</th>
                   <th scope="col">Genre</th>
-                  
+
                   <th scope="col">
-                    <i class="fa-solid fa-caret-up"  onClick={this.sortPopularityAsc}/>
+                    <i class="fa-solid fa-caret-up" onClick={this.sortPopularityAsc} />
                     Popularity
-                    <i class="fa-solid fa-caret-down"  onClick={this.sortPopularityDesc}/>
+                    <i class="fa-solid fa-caret-down" onClick={this.sortPopularityDesc} />
                   </th>
                   <th scope="col">
-                    <i class="fa-solid fa-caret-up" onClick={this.sortRatingAsc}/>
+                    <i class="fa-solid fa-caret-up" onClick={this.sortRatingAsc} />
                     Rating
-                    <i class="fa-solid fa-caret-down" onClick={this.sortRatingDesc}/>
+                    <i class="fa-solid fa-caret-down" onClick={this.sortRatingDesc} />
                   </th>
                   <th scope="col"></th>
 
@@ -188,7 +204,12 @@ export default class Favourites extends Component {
                       <td>{movieObj.popularity}</td>
                       <td>{movieObj.vote_average}</td>
                       <td>
-                        <button class="btn btn-outline-danger">Delete</button>
+                        <button
+                          class="btn btn-outline-danger"
+                          onClick={() => this.handleDelete(movieObj.id)}
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))
